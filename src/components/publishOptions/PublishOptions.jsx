@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { addGroups, getGroups } from "../../service/api/mobileApi";
+import { addGroups, getGroups, deleteGroup } from "../../service/api/mobileApi";
 import SettingTab from "../settingTab/SettingTab";
 import { styles } from "./publishOptionsStyle";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -9,20 +9,16 @@ const PublishOptions = () => {
   const [groups, setgroups] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [selectedGroups, setselectedGroups] = useState([]);
+  const [deletingGroup, setDeletingGroup] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { item, selectedProducts } = location.state || {};
-
 
   useEffect(() => {
     if (activeTab === "groups" || activeTab === "community") {
       getGroupsAndCommunity();
     }
   }, [activeTab]);
-
-
-  
-
 
   //   Get groups and community
 
@@ -64,15 +60,30 @@ const PublishOptions = () => {
   };
 
   const handleCheckboxChange = (product) => {
-  setselectedGroups((prevSelected) => {
-    const exists = prevSelected.some((p) => p.id === product.id);
-    if (exists) {
-      return prevSelected.filter((p) => p.id !== product.id);
-    } else {
-      return [...prevSelected, product];
+    setselectedGroups((prevSelected) => {
+      const exists = prevSelected.some((p) => p.id === product.id);
+      if (exists) {
+        return prevSelected.filter((p) => p.id !== product.id);
+      } else {
+        return [...prevSelected, product];
+      }
+    });
+  };
+
+  // Delete Group
+
+  const handleDelete = async (group) => {
+    try {
+      setDeletingGroup(group);
+      const data = await deleteGroup({ id: group.id });
+      setDeletingGroup(null);
+      if (data) {
+        getGroupsAndCommunity();
+      }
+    } catch (error) {
+      setDeletingGroup(null);
     }
-  });
-};
+  };
 
   //   Group card Component
 
@@ -84,21 +95,33 @@ const PublishOptions = () => {
             <div key={index} style={styles.groupWrapper}>
               {/* <img src="" alt="" /> */}
               <div style={{ display: "flex", alignItems: "center" }}>
-                <h2>{index + 1}. </h2>
-                <h3 style={{ textAlign: "left", marginLeft: "10px" }}>
+                <h2 style={{ fontWeight: "400" }}>{index + 1}. </h2>
+                <h3
+                  style={{
+                    textAlign: "left",
+                    marginLeft: "10px",
+                    fontWeight: "400",
+                  }}
+                >
                   {group.name}
                 </h3>
               </div>
               <button
                 style={styles.deleteButton}
-                onClick={() => handleDeleteClick(item)}
-                onMouseOver={(e) =>
-                  (e.target.style.backgroundColor = "#c82333")
-                }
-                onMouseOut={(e) => (e.target.style.backgroundColor = "#dc3545")}
+                onClick={() => handleDelete(group)}
+                onMouseOver={(e) => {
+                  if (deletingGroup !== group)
+                    e.target.style.backgroundColor = "#c82333";
+                }}
+                onMouseOut={(e) => {
+                  if (deletingGroup !== group)
+                    e.target.style.backgroundColor = "#dc3545";
+                }}
+                disabled={deletingGroup === group}
               >
-                Delete
+                {deletingGroup === group ? "Deleting..." : "Delete"}
               </button>
+
               {/* <p> {group.id}</p> */}
             </div>
           ))
@@ -114,8 +137,6 @@ const PublishOptions = () => {
         >
           <button
             style={styles.addNumberButton}
-            // onClick={() => navigate("/published", { state: { item } })}
-            // onClick={()=>sendWhatsAppMessagesToGroupsAndCommunities(selectedGroups,selectedProducts)}
             onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
             onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
           >
@@ -146,11 +167,27 @@ const PublishOptions = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Arial", width: 600, height: 400 }}>
+    <div
+      style={{
+        fontFamily: "Arial",
+        width: 600,
+        backgroundColor: "#FDFBD4",
+        padding: "20px",
+        borderRadius: 30,
+      }}
+    >
       <h3 onClick={() => navigate(-1)} style={styles.backButton}>
         ← Back
       </h3>
-      <h2 style={{ textAlign: "left" }}>Groups & community</h2>
+      <h2
+        style={{
+          textAlign: "left",
+          fontWeight: "400",
+          fontFamily: "Montserrat",
+        }}
+      >
+        Groups & community
+      </h2>
       <div style={styles.tabsContainer}>
         {["groups", "community", "settings"].map((tab) => (
           <button
@@ -183,12 +220,30 @@ const PublishOptions = () => {
           />
           <div style={styles.buttonWrapper}>
             <button
-              style={styles.addNumberButton}
+              disabled={inputValue.length === 0}
+              style={{
+                ...styles.addNumberButton,
+                background:
+                  inputValue.length === 0
+                    ? "#d3d3d3"
+                    : "linear-gradient(135deg, #007bff, #0056b3)", // light gray when disabled
+                color: "#ffffff", // faded text when disabled
+                cursor: inputValue.length === 0 ? "not-allowed" : "pointer",
+                transition: "background-color 0.3s ease, color 0.3s ease",
+              }}
               onClick={handleAddGroup}
-              onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
-              onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
+              onMouseOver={(e) => {
+                if (inputValue.length !== 0) {
+                  e.target.style.backgroundColor = "#0056b3";
+                }
+              }}
+              onMouseOut={(e) => {
+                if (inputValue.length !== 0) {
+                  e.target.style.backgroundColor = "#007bff";
+                }
+              }}
             >
-              Add {activeTab == "groups" ? "groups" : "community"}
+              Add {activeTab === "groups" ? "groups" : "community"}
             </button>
           </div>
         </>

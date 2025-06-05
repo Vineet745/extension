@@ -142,10 +142,10 @@ const Popup = () => {
   return (
     //
     <div style={{width:600,maxHeight:400}} >
-    {/* <MobileNumbers /> */}
+    <MobileNumbers />
     {/* <WhatsAppSender/> */}
     {/* <PublishOptions/> */}
-    <StatusUploader/>
+    {/* <StatusUploader/> */}
     </div>
   );
 };

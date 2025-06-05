@@ -1,3 +1,4 @@
+
 export const styles = {
   mobileCardStyle: {
     display: "flex",
@@ -14,6 +15,7 @@ export const styles = {
     cursor: "pointer",
     boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
     transition: "background-color 0.3s ease",
+    fontFamily:"Montserrat"
   },
   automationButton: {
     padding: "10px",
@@ -24,18 +26,21 @@ export const styles = {
     cursor: "pointer",
     boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
     transition: "background-color 0.3s ease",
+    fontFamily:"Montserrat"
   },
   addNumberButton:{
   padding: "10px 20px",
-  background: "linear-gradient(135deg, #007bff, #0056b3)", 
+  // background: "linear-gradient(135deg, #007bff, #0056b3)", 
+  background:"#25D366",
   color: "#ffffff",
   border: "none",
   borderRadius: "8px",
   cursor: "pointer",
-  fontWeight: "bold",
-  fontSize: "16px",
+  // fontWeight: "bold",
+  fontSize: "14px",
   boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
   transition: "all 0.3s ease",
+  fontWeight:"Montserrat"
   },
   inputBox: {
     padding: "10px",
@@ -44,6 +49,7 @@ export const styles = {
     border: "1px solid #ccc",
     borderRadius: "4px",
     fontSize: "16px",
+    fontFamily:"Montserrat"
 //     marginTop: "10px",
   },
   deleteButton: {
@@ -55,6 +61,7 @@ export const styles = {
   cursor: "pointer",
   boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
   transition: "background-color 0.3s ease",
+  fontFamily:"Montserrat"
 },
 modalOverlay: {
     position: "fixed",

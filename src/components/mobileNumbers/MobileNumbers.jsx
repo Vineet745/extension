@@ -58,8 +58,9 @@ const MobileNumbers = () => {
   };
 
   return (
-    <div>
-      <h1 style={{ textAlign: "left" }}>Mobile Numbers</h1>
+    <div style={{backgroundColor:"#FDFBD4",padding:"20px",borderRadius:30}}>
+      <h1 style={{ textAlign: "left",fontWeight:"400",fontSize:
+        25 }}>Mobile Numbers</h1>
 
       <input
         type="number"
@@ -71,10 +72,10 @@ const MobileNumbers = () => {
 
       <div style={{ display: "flex", justifyContent: "flex-end", margin: "10px 0" }}>
         <button
-          style={styles.addNumberButton}
+          style={{...styles.addNumberButton,backgroundColor: inputValue.length === 0 ? "#d3d3d3" : '#25D366',
+    cursor: inputValue.length === 0 ? "not-allowed" : "pointer",}}
           onClick={handleAddNumber}
-          onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
-          onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
+          
         >
           Add Number
         </button>
@@ -83,8 +84,8 @@ const MobileNumbers = () => {
       {numbers.map((item, index) => (
         <div key={item.id} style={styles.mobileCardStyle}>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <h4>{index + 1}.</h4>
-            <h4 style={{ marginLeft: 10 }}>{item.mobile_number}</h4>
+            <h4 style={{fontWeight:"500" }}>{index + 1}.</h4>
+            <h4 style={{ marginLeft: 10,fontWeight:"500" }}>{item.mobile_number}</h4>
           </div>
 
           <div style={{ display: "flex", gap: "10px" }}>

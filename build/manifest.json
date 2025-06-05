@@ -3,7 +3,7 @@
   "name": "React WhatsApp Sender",
   "version": "1.0",
   "description": "Send WhatsApp messages via Chrome extension",
-  "permissions": ["scripting", "tabs", "activeTab"],
+  "permissions": ["scripting", "tabs", "activeTab","clipboardWrite"],
   "host_permissions": ["https://web.whatsapp.com/*"],
   "action": {
     "default_popup": "index.html"

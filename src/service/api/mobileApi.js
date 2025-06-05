@@ -82,10 +82,34 @@ export const enableGroupsAndCommunity = async (requiredData) =>{
 
 export const getProductList = async(mobile_number_id)=>{
   try {
-    const response = await instance.get(`products/?mobile_number_id=${mobile_number_id}`)
+    const response = await instance.get(`products?mobile_number_id=${mobile_number_id}`)
     return response;
   } catch (error) {
     console.log("newError",error)
+    throw error;
+  }
+}
+
+
+// Delete group 
+
+export const deleteGroup = async({id}) =>{
+  try {
+    const response = await instance.delete(`whatsapp-types-names/${id}`)
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// Send Group
+
+export const sendProduct = async()=>{
+   try {
+    const response = await instance.post(`products/send`)
+    return response;
+  } catch (error) {
     throw error;
   }
 }

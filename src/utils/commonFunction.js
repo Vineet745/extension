@@ -1,6 +1,4 @@
-import React from "react";
-
-export const handleUpload = async () => {
+export const handleUpload = async (products) => {
     for (const product of products) {
       try {
         const response = await fetch(product.image);
@@ -36,50 +34,9 @@ export const handleUpload = async () => {
 
   };
 
-const StatusUploader = () => {
-  // Multiple products to upload
-  // const products = [
-  //   {
-  //     id: 155842,
-  //     name: "URMYWO Busy Board - Montessori Toddler Activities",
-  //     image: "https://m.media-amazon.com/images/I/51bAwOJOEtL._SL500_.jpg",
-  //     description:
-  //       "Keep your little one entertained for hours with our innovative URMYWO Busy Board.",
-  //   },
-  //   {
-  //     id: 155843,
-  //     name: "Educational Wooden Puzzle - Animal Shapes",
-  //     image: "https://m.media-amazon.com/images/I/71AvQd3VzqL._SL1500_.jpg",
-  //     description:
-  //       "Help your kids learn animal names and shapes with this colorful wooden puzzle set.",
-  //   },
-  //   {
-  //     id: 155844,
-  //     name: "STEM Building Blocks Set - 150 Pieces",
-  //     image: "https://m.media-amazon.com/images/I/81mC5xn8x4L._AC_SL1500_.jpg",
-  //     description:
-  //       "Encourage problem-solving and creativity with our 150-piece STEM building blocks set.",
-  //   },
-  //   {
-  //     id: 155845,
-  //     name: "Magnetic Drawing Board for Toddlers",
-  //     image: "https://m.media-amazon.com/images/I/71X4kjy2-FL._AC_SL1500_.jpg",
-  //     description:
-  //       "Let your kids express creativity with this erasable and reusable magnetic drawing board.",
-  //   },
-  // ];
 
-  
 
-  return (
-    <div>
-      <h2>Upload Multiple WhatsApp Statuses</h2>
-      {/* <button onClick={handleUpload}>Upload All</button> */}
-    </div>
-  );
-};
-
-function uploadStatusToWhatsApp(imageData, caption) {
+  function uploadStatusToWhatsApp(imageData, caption) {
   const waitForElement = (selector, timeout = 10000) => {
     return new Promise((resolve, reject) => {
       const start = Date.now();
@@ -96,7 +53,7 @@ function uploadStatusToWhatsApp(imageData, caption) {
     });
   };
 
-  const simulateUpload = async () => {
+ const simulateUpload = async () => {
     try {
       const statusBtn = await waitForElement('[aria-label="Status"], [data-testid="status-v3"]');
       statusBtn.click();
@@ -131,5 +88,3 @@ function uploadStatusToWhatsApp(imageData, caption) {
 
   simulateUpload();
 }
-
-export default StatusUploader;

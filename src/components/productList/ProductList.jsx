@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./productListStyle";
-import { getGroups } from "../../service/api/mobileApi";
+import { getGroups, getProductList } from "../../service/api/mobileApi";
+import { handleUpload } from "../../utils/commonFunction";
 
 const ProductList = () => {
   const location = useLocation();
@@ -13,94 +14,67 @@ const ProductList = () => {
   const [communityItems, setCommunityItems] = useState([]);
   const [statusItems, setStatusItems] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [productArray, setProductArray] = useState([])
+
+  console.log("groups",groups)
+
 
   useEffect(() => {
+    getProducts()
     getGroupsAndCommunity();
   }, []);
 
-  const productArray = [
-    {
-      id: 155842,
-      name: "URMYWO Busy Board - Montessori Toddler Activities",
-      image: "https://m.media-amazon.com/images/I/51bAwOJOEtL._SL500_.jpg",
-      price: "9.99",
-      mrp: "19.97",
-      discount: "0.00",
-      coupon: "AUYHZFJA",
-      buttonText: "Get Deal",
-      amazonUrl: "https://www.amazon.com/dp/B0DCBKL94N?m=A38SVRTBUT8LQY",
-      affiliateUrl: "https://www.amazon.com/dp/B0DCBKL94N?tag=kesefdeals00-20",
-      productType: "Toys And Games",
-      asin: "B0DCBKL94N",
-      description:
-        "Keep your little one entertained for hours with our innovative URMYWO Busy Board.",
-    },
-    {
-      id: 155843,
-      name: "Educational Wooden Puzzle - Animal Shapes",
-      image: "https://m.media-amazon.com/images/I/71AvQd3VzqL._SL1500_.jpg",
-      price: "12.99",
-      mrp: "22.99",
-      discount: "0.00",
-      coupon: "PUZZLEDEAL",
-      buttonText: "Buy Now",
-      amazonUrl: "https://www.amazon.com/dp/B0XXYZZ111?m=ABC123",
-      affiliateUrl: "https://www.amazon.com/dp/B0XXYZZ111?tag=kesefdeals00-20",
-      productType: "Toys And Games",
-      asin: "B0XXYZZ111",
-      description:
-        "Help your kids learn animal names and shapes with this colorful wooden puzzle set.",
-    },
-    {
-      id: 155844,
-      name: "STEM Building Blocks Set - 150 Pieces",
-      image: "https://m.media-amazon.com/images/I/81mC5xn8x4L._AC_SL1500_.jpg",
-      price: "18.49",
-      mrp: "29.99",
-      discount: "0.00",
-      coupon: "STEMBLOCKS",
-      buttonText: "Claim Offer",
-      amazonUrl: "https://www.amazon.com/dp/B0ABCXYZ123?m=XYZ987",
-      affiliateUrl: "https://www.amazon.com/dp/B0ABCXYZ123?tag=kesefdeals00-20",
-      productType: "Educational Toys",
-      asin: "B0ABCXYZ123",
-      description:
-        "Encourage problem-solving and creativity with our 150-piece STEM building blocks set.",
-    },
-    {
-      id: 155845,
-      name: "Magnetic Drawing Board for Toddlers",
-      image: "https://m.media-amazon.com/images/I/71X4kjy2-FL._AC_SL1500_.jpg",
-      price: "10.99",
-      mrp: "17.99",
-      discount: "0.00",
-      coupon: "DRAWFUN",
-      buttonText: "Shop Now",
-      amazonUrl: "https://www.amazon.com/dp/B0DRAW12345?m=DRAW321",
-      affiliateUrl: "https://www.amazon.com/dp/B0DRAW12345?tag=kesefdeals00-20",
-      productType: "Toys",
-      asin: "B0DRAW12345",
-      description:
-        "Let your kids express creativity with this erasable and reusable magnetic drawing board.",
-    },
-  ];
+  
 
   // Get Group And community
 
+  // const getGroupsAndCommunity = async () => {
+  //   const requiredData = {
+  //     mobile_number_id: 5,
+  //   };
+  //   try {
+  //     const { data } = await getGroups(requiredData);
+  //     const groupNamesArray = data?.whatsapp_type_names?.data?.map(
+  //       (item) => item.name
+  //     );
+  //     setGroups(groupNamesArray);
+  //   } catch (error) {
+  //     console.log("error", error);
+  //   }
+  // };
+
+
   const getGroupsAndCommunity = async () => {
-    const requiredData = {
-      mobile_number_id: 5,
-    };
-    try {
-      const { data } = await getGroups(requiredData);
-      const groupNamesArray = data?.whatsapp_type_names?.data?.map(
-        (item) => item.name
-      );
-      setGroups(groupNamesArray);
-    } catch (error) {
-      console.log("error", error);
-    }
+  const requiredData = {
+    mobile_number_id: 5,
   };
+  try {
+    const { data } = await getGroups(requiredData);
+    
+    const groupWithTypesArray = data?.whatsapp_type_names?.data?.map(
+      (item) => ({
+        name: item.name.trim(),
+        type: item.types, 
+      })
+    );
+
+    setGroups(groupWithTypesArray); 
+  } catch (error) {
+    console.log("error", error);
+  }
+};
+
+
+
+  const getProducts = async()=>{
+    try {
+      const {data} = await getProductList(item?.id)
+      setProductArray(data?.data)
+    } catch (error) {
+      console.log("error",error )
+    }
+  }
+
 
   const handleToggle = (item, stateArray, setStateArray) => {
     const exists = stateArray.some((i) => i.id === item.id);
@@ -113,148 +87,694 @@ const ProductList = () => {
 
   // Send message Group and community
 
-  const handleSend = () => {
-    const groupsArray = groups
-      .map((name) => name.trim())
-      .filter((name) => name !== "");
+  // const handleSend = async() => {
+  //   const groupsArray = groups
+  //     .map((name) => name.trim())
+  //     .filter((name) => name !== "");
 
-    if (groupsArray.length === 0) {
-      alert("⚠️ Please enter at least one group name.");
-      return;
-    }
+  //   if (groupsArray.length === 0) {
+  //     alert("⚠️ Please enter at least one group name.");
+  //     return;
+  //   }
 
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.scripting.executeScript({
-        target: { tabId: tabs[0].id },
-        args: [groupsArray, productArray],
-        func: async (groupList, products) => {
-          const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+  //   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  //     chrome.scripting.executeScript({
+  //       target: { tabId: tabs[0].id },
+  //       args: [groupsArray, productArray],
+  //       func: async (groupList, products) => {
+  //         const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
-          const waitForGroupAndClick = async (groupName, maxAttempts = 30) => {
-            for (let i = 0; i < maxAttempts; i++) {
-              const allSpans = [...document.querySelectorAll("span[title]")];
-              const match = allSpans.find((el) => {
-                const title = el.getAttribute("title")?.toLowerCase() || "";
-                const text = el.textContent?.toLowerCase() || "";
-                return (
-                  title.includes(groupName.toLowerCase()) ||
-                  text.includes(groupName.toLowerCase())
-                );
-              });
+  //         const waitForGroupAndClick = async (groupName, maxAttempts = 30) => {
+  //           for (let i = 0; i < maxAttempts; i++) {
+  //             const allSpans = [...document.querySelectorAll("span[title]")];
+  //             const match = allSpans.find((el) => {
+  //               const title = el.getAttribute("title")?.toLowerCase() || "";
+  //               const text = el.textContent?.toLowerCase() || "";
+  //               return (
+  //                 title.includes(groupName.toLowerCase()) ||
+  //                 text.includes(groupName.toLowerCase())
+  //               );
+  //             });
 
-              if (match) {
-                let clickable = match;
-                for (let j = 0; j < 10 && clickable; j++) {
-                  if (
-                    clickable.getAttribute("role") === "listitem" ||
-                    clickable.getAttribute("role") === "button" ||
-                    clickable.tagName === "BUTTON" ||
-                    clickable.tagName === "DIV"
-                  )
-                    break;
-                  clickable = clickable.parentElement;
-                }
+  //             if (match) {
+  //               let clickable = match;
+  //               for (let j = 0; j < 10 && clickable; j++) {
+  //                 if (
+  //                   clickable.getAttribute("role") === "listitem" ||
+  //                   clickable.getAttribute("role") === "button" ||
+  //                   clickable.tagName === "BUTTON" ||
+  //                   clickable.tagName === "DIV"
+  //                 )
+  //                   break;
+  //                 clickable = clickable.parentElement;
+  //               }
 
-                if (clickable) {
-                  ["mousedown", "mouseup", "click"].forEach((type) =>
-                    clickable.dispatchEvent(
-                      new MouseEvent(type, {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window,
-                      })
-                    )
-                  );
-                  await sleep(2000);
-                  return true;
-                }
-              }
-              await sleep(800);
-            }
-            return false;
-          };
+  //               if (clickable) {
+  //                 ["mousedown", "mouseup", "click"].forEach((type) =>
+  //                   clickable.dispatchEvent(
+  //                     new MouseEvent(type, {
+  //                       bubbles: true,
+  //                       cancelable: true,
+  //                       view: window,
+  //                     })
+  //                   )
+  //                 );
+  //                 await sleep(2000);
+  //                 return true;
+  //               }
+  //             }
+  //             await sleep(800);
+  //           }
+  //           return false;
+  //         };
 
-          const waitForChatToOpen = async (callback, maxAttempts = 20) => {
-            for (let i = 0; i < maxAttempts; i++) {
-              const box = document.querySelector(
-                "div[contenteditable='true'][data-tab='10']"
+  //         const waitForChatToOpen = async (callback, maxAttempts = 30) => {
+  //           for (let i = 0; i < maxAttempts; i++) {
+  //             const box = document.querySelector(
+  //               "div[contenteditable='true'][data-tab='10']"
+  //             );
+  //             if (box && box.offsetParent !== null) {
+  //               callback();
+  //               return;
+  //             }
+  //             await sleep(1000);
+  //           }
+  //           alert("❌ Message box not available.");
+  //         };
+
+  //         const sendMessage = async (msg) => {
+  //           return new Promise((resolve) => {
+  //             waitForChatToOpen(() => {
+  //               const messageBox = document.querySelector(
+  //                 "div[contenteditable='true'][data-tab='10']"
+  //               );
+  //               if (!messageBox) {
+  //                 resolve(false);
+  //                 return;
+  //               }
+
+  //               messageBox.focus();
+
+  //               navigator.clipboard
+  //                 .writeText(msg)
+  //                 .then(() => {
+  //                   document.execCommand("paste");
+  //                 })
+  //                 .catch(() => {
+  //                   document.execCommand("insertText", false, msg);
+  //                 });
+
+  //               setTimeout(() => {
+  //                 const sendBtn = document.querySelector(
+  //                   "span[data-icon='send']"
+  //                 );
+  //                 if (sendBtn) sendBtn.click();
+  //                 resolve(true);
+  //               }, 500);
+  //             });
+  //           });
+  //         };
+
+  //         for (const group of groupList) {
+  //           const found = await waitForGroupAndClick(group);
+  //           if (!found) {
+  //             alert(`⚠️ Group "${group}" not found.`);
+  //             continue;
+  //           }
+
+  //           for (const product of products) {
+  //             const msg = `🛒 *${product.title}*\n💰 Price: $${
+  //               product.price
+  //             }\n🔗 ${product.amazon_product_url}\n\n${product.description || ""}\n Affilated Url : - ${product.product_affiliate_url}`;
+  //             await sendMessage(msg);
+  //             await sleep(1500);
+  //           }
+
+  //           await sleep(2000);
+  //         }
+
+  //         alert("✅ All products sent to all groups!");
+  //       },
+  //     });
+  //   });
+
+  //   await handleUpload()
+  // };
+
+// Separately send the message in the group and the community
+
+// const handleSend = async () => {
+//   const cleanedGroups = groups
+//     .filter((g) => g?.name?.trim() !== "")
+//     .map((g) => ({ name: g.name.trim(), type: g.type }));
+
+//   if (cleanedGroups.length === 0) {
+//     alert("⚠️ Please enter at least one group or community name.");
+//     return;
+//   }
+
+//   // ✅ Now filter and map to names only
+//   const groupList = cleanedGroups
+//     .filter((g) => g.type === 1)
+//     .map((g) => g.name);
+
+//   const communityList = cleanedGroups
+//     .filter((g) => g.type === 2)
+//     .map((g) => g.name);
+
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     chrome.scripting.executeScript({
+//       target: { tabId: tabs[0].id },
+//       args: [groupList, communityList, productArray],
+//       func: async (groupList, communityList, products) => {
+//         // inner script stays the same — operates on names only
+//         const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+//         const waitForGroupAndClick = async (groupName, maxAttempts = 30) => {
+//           for (let i = 0; i < maxAttempts; i++) {
+//             const allSpans = [...document.querySelectorAll("span[title]")];
+//             const match = allSpans.find((el) => {
+//               const title = el.getAttribute("title")?.toLowerCase() || "";
+//               const text = el.textContent?.toLowerCase() || "";
+//               return (
+//                 title.includes(groupName.toLowerCase()) ||
+//                 text.includes(groupName.toLowerCase())
+//               );
+//             });
+
+//             if (match) {
+//               let clickable = match;
+//               for (let j = 0; j < 10 && clickable; j++) {
+//                 if (
+//                   clickable.getAttribute("role") === "listitem" ||
+//                   clickable.getAttribute("role") === "button" ||
+//                   clickable.tagName === "BUTTON" ||
+//                   clickable.tagName === "DIV"
+//                 )
+//                   break;
+//                 clickable = clickable.parentElement;
+//               }
+
+//               if (clickable) {
+//                 ["mousedown", "mouseup", "click"].forEach((type) =>
+//                   clickable.dispatchEvent(
+//                     new MouseEvent(type, {
+//                       bubbles: true,
+//                       cancelable: true,
+//                       view: window,
+//                     })
+//                   )
+//                 );
+//                 await sleep(2000);
+//                 return true;
+//               }
+//             }
+//             await sleep(800);
+//           }
+//           return false;
+//         };
+
+//         const waitForChatToOpen = async (callback, maxAttempts = 30) => {
+//           for (let i = 0; i < maxAttempts; i++) {
+//             const box = document.querySelector(
+//               "div[contenteditable='true'][data-tab='10']"
+//             );
+//             if (box && box.offsetParent !== null) {
+//               callback();
+//               return;
+//             }
+//             await sleep(1000);
+//           }
+//           alert("❌ Message box not available.");
+//         };
+
+//         const sendMessage = async (msg) => {
+//           return new Promise((resolve) => {
+//             waitForChatToOpen(() => {
+//               const messageBox = document.querySelector(
+//                 "div[contenteditable='true'][data-tab='10']"
+//               );
+//               if (!messageBox) {
+//                 resolve(false);
+//                 return;
+//               }
+
+//               messageBox.focus();
+
+//               navigator.clipboard
+//                 .writeText(msg)
+//                 .then(() => {
+//                   document.execCommand("paste");
+//                 })
+//                 .catch(() => {
+//                   document.execCommand("insertText", false, msg);
+//                 });
+
+//               setTimeout(() => {
+//                 const sendBtn = document.querySelector("span[data-icon='send']");
+//                 if (sendBtn) sendBtn.click();
+//                 resolve(true);
+//               }, 500);
+//             });
+//           });
+//         };
+
+//         const sendToList = async (list, label) => {
+//           for (const name of list) {
+//             const found = await waitForGroupAndClick(name);
+//             if (!found) {
+//               alert(`⚠️ ${label} "${name}" not found.`);
+//               continue;
+//             }
+
+//             for (const product of products) {
+//               const msg = `🛒 *${product.title}*\n💰 Price: $${product.price}\n🔗 ${product.amazon_product_url}\n\n${product.description || ""}\nAffiliated Url: ${product.product_affiliate_url}`;
+//               await sendMessage(msg);
+//               await sleep(1500);
+//             }
+
+//             await sleep(2000);
+//           }
+//         };
+
+//         await sendToList(groupList, "Group");
+//         await sendToList(communityList, "Community");
+
+//         alert("✅ All products sent to all groups and communities!");
+//       },
+//     });
+//   });
+
+//   // await handleUpload();
+// };
+
+// Handle Send message with the image
+
+// const handleSend = async () => {
+//   const cleanedGroups = groups
+//     .filter((g) => g?.name?.trim() !== "")
+//     .map((g) => ({ name: g.name.trim(), type: g.type }));
+
+//   if (cleanedGroups.length === 0) {
+//     alert("⚠️ Please enter at least one group or community name.");
+//     return;
+//   }
+
+//   const groupList = cleanedGroups.filter((g) => g.type === 1).map((g) => g.name);
+//   const communityList = cleanedGroups.filter((g) => g.type === 2).map((g) => g.name);
+
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     chrome.scripting.executeScript({
+//       target: { tabId: tabs[0].id },
+//       args: [groupList, communityList, productArray],
+//       func: async (groupList, communityList, products) => {
+//         const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+//         const waitForGroupAndClick = async (groupName, maxAttempts = 30) => {
+//           for (let i = 0; i < maxAttempts; i++) {
+//             const allSpans = [...document.querySelectorAll("span[title]")];
+//             const match = allSpans.find((el) => {
+//               const title = el.getAttribute("title")?.toLowerCase() || "";
+//               const text = el.textContent?.toLowerCase() || "";
+//               return (
+//                 title.includes(groupName.toLowerCase()) ||
+//                 text.includes(groupName.toLowerCase())
+//               );
+//             });
+
+//             if (match) {
+//               let clickable = match;
+//               for (let j = 0; j < 10 && clickable; j++) {
+//                 if (
+//                   clickable.getAttribute("role") === "listitem" ||
+//                   clickable.getAttribute("role") === "button" ||
+//                   clickable.tagName === "BUTTON" ||
+//                   clickable.tagName === "DIV"
+//                 ) break;
+//                 clickable = clickable.parentElement;
+//               }
+
+//               if (clickable) {
+//                 ["mousedown", "mouseup", "click"].forEach((type) =>
+//                   clickable.dispatchEvent(
+//                     new MouseEvent(type, {
+//                       bubbles: true,
+//                       cancelable: true,
+//                       view: window,
+//                     })
+//                   )
+//                 );
+//                 await sleep(2000);
+//                 return true;
+//               }
+//             }
+//             await sleep(800);
+//           }
+//           return false;
+//         };
+
+//         const waitForChatToOpen = async (callback, maxAttempts = 30) => {
+//           for (let i = 0; i < maxAttempts; i++) {
+//             const box = document.querySelector(
+//               "div[contenteditable='true'][data-tab='10']"
+//             );
+//             if (box && box.offsetParent !== null) {
+//               callback();
+//               return;
+//             }
+//             await sleep(1000);
+//           }
+//           alert("❌ Message box not available.");
+//         };
+
+//         const fetchImageAsFile = async (url, fileName = "image.jpg") => {
+//           const res = await fetch(url);
+//           const blob = await res.blob();
+//           return new File([blob], fileName, { type: blob.type });
+//         };
+
+//         const sendImage = async (imageUrl) => {
+//           try {
+//             const imageFile = await fetchImageAsFile(imageUrl);
+//             const dataTransfer = new DataTransfer();
+//             dataTransfer.items.add(imageFile);
+
+//             const fileInput = document.createElement("input");
+//             fileInput.type = "file";
+//             fileInput.style.display = "none";
+//             fileInput.accept = "image/*";
+//             document.body.appendChild(fileInput);
+//             fileInput.files = dataTransfer.files;
+
+//             fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+//             const actualInput = document.querySelector("input[type='file']");
+//             if (actualInput) {
+//               actualInput.files = dataTransfer.files;
+//               actualInput.dispatchEvent(new Event("change", { bubbles: true }));
+//               await sleep(3000);
+//             }
+
+//             fileInput.remove();
+//           } catch (err) {
+//             console.error("⚠️ Error uploading image", err);
+//           }
+//         };
+
+//         const sendMessage = async (msg, imageUrl) => {
+//           return new Promise(async (resolve) => {
+//             waitForChatToOpen(async () => {
+//               if (imageUrl) {
+//                 await sendImage(imageUrl);
+//               }
+
+//               const messageBox = document.querySelector(
+//                 "div[contenteditable='true'][data-tab='10']"
+//               );
+//               if (!messageBox) {
+//                 resolve(false);
+//                 return;
+//               }
+
+//               messageBox.focus();
+//               document.execCommand("insertText", false, msg);
+
+//               setTimeout(() => {
+//                 const sendBtn = document.querySelector("span[data-icon='send']");
+//                 if (sendBtn) sendBtn.click();
+//                 resolve(true);
+//               }, 1000);
+//             });
+//           });
+//         };
+
+//         const sendToList = async (list, label) => {
+//           for (const name of list) {
+//             const found = await waitForGroupAndClick(name);
+//             if (!found) {
+//               alert(`⚠️ ${label} "${name}" not found.`);
+//               continue;
+//             }
+
+//             for (const product of products) {
+//               const msg = `🛒 *${product.title}*\n💰 Price: $${product.price}\n🔗 ${product.amazon_product_url}\n\n${product.description || ""}\nAffiliated Url: ${product.product_affiliate_url}`;
+//               await sendMessage(msg, product.image); // ✅ image sent via <input type="file">
+//               await sleep(1500);
+//             }
+
+//             await sleep(2000);
+//           }
+//         };
+
+//         await sendToList(groupList, "Group");
+//         await sendToList(communityList, "Community");
+
+//         alert("✅ All products sent to all groups and communities!");
+//       },
+//     });
+//   });
+// };
+
+
+
+const handleSend = async () => {
+  const cleanedGroups = groups
+    .filter((g) => g?.name?.trim() !== "")
+    .map((g) => ({ name: g.name.trim(), type: g.type }));
+
+  if (cleanedGroups.length === 0) {
+    alert("⚠️ Please enter at least one group or community name.");
+    return;
+  }
+
+  const groupList = cleanedGroups.filter((g) => g.type === 1).map((g) => g.name);
+  const communityList = cleanedGroups.filter((g) => g.type === 2).map((g) => g.name);
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.scripting.executeScript({
+      target: { tabId: tabs[0].id },
+      args: [groupList, communityList, productArray],
+      func: async (groupList, communityList, products) => {
+        const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+        const waitForGroupAndClick = async (groupName, maxAttempts = 30) => {
+          for (let i = 0; i < maxAttempts; i++) {
+            const allSpans = [...document.querySelectorAll("span[title]")];
+            const match = allSpans.find((el) => {
+              const title = el.getAttribute("title")?.toLowerCase() || "";
+              const text = el.textContent?.toLowerCase() || "";
+              return (
+                title.includes(groupName.toLowerCase()) ||
+                text.includes(groupName.toLowerCase())
               );
-              if (box && box.offsetParent !== null) {
-                callback();
+            });
+
+            if (match) {
+              let clickable = match;
+              for (let j = 0; j < 10 && clickable; j++) {
+                if (
+                  clickable.getAttribute("role") === "listitem" ||
+                  clickable.getAttribute("role") === "button" ||
+                  clickable.tagName === "BUTTON" ||
+                  clickable.tagName === "DIV"
+                ) break;
+                clickable = clickable.parentElement;
+              }
+
+              if (clickable) {
+                ["mousedown", "mouseup", "click"].forEach((type) =>
+                  clickable.dispatchEvent(
+                    new MouseEvent(type, {
+                      bubbles: true,
+                      cancelable: true,
+                      view: window,
+                    })
+                  )
+                );
+                await sleep(2000);
+                return true;
+              }
+            }
+            await sleep(800);
+          }
+          return false;
+        };
+
+        const waitForChatToOpen = async (callback, maxAttempts = 30) => {
+          for (let i = 0; i < maxAttempts; i++) {
+            const box = document.querySelector("div[contenteditable='true'][data-tab='10']");
+            if (box && box.offsetParent !== null) {
+              callback();
+              return;
+            }
+            await sleep(1000);
+          }
+          alert("❌ Message box not available.");
+        };
+
+        const fetchImageAsFile = async (url, fileName = "image.jpg") => {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          return new File([blob], fileName, { type: blob.type });
+        };
+
+        const sendImage = async (imageUrl) => {
+          try {
+            const imageFile = await fetchImageAsFile(imageUrl);
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(imageFile);
+
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.style.display = "none";
+            fileInput.accept = "image/*";
+            document.body.appendChild(fileInput);
+            fileInput.files = dataTransfer.files;
+
+            fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+            const actualInput = document.querySelector("input[type='file']");
+            if (actualInput) {
+              actualInput.files = dataTransfer.files;
+              actualInput.dispatchEvent(new Event("change", { bubbles: true }));
+              await sleep(3000);
+            }
+
+            fileInput.remove();
+          } catch (err) {
+            console.error("⚠️ Error uploading image", err);
+          }
+        };
+
+        const sendMessage = async (msg, imageUrl) => {
+          return new Promise(async (resolve) => {
+            waitForChatToOpen(async () => {
+              if (imageUrl) {
+                await sendImage(imageUrl);
+              }
+
+              const messageBox = document.querySelector("div[contenteditable='true'][data-tab='10']");
+              if (!messageBox) {
+                resolve(false);
                 return;
               }
-              await sleep(1000);
-            }
-            alert("❌ Message box not available.");
-          };
 
-          const sendMessage = async (msg) => {
-            return new Promise((resolve) => {
-              waitForChatToOpen(() => {
-                const messageBox = document.querySelector(
-                  "div[contenteditable='true'][data-tab='10']"
-                );
-                if (!messageBox) {
-                  resolve(false);
-                  return;
-                }
+              messageBox.focus();
+              document.execCommand("insertText", false, msg);
 
-                messageBox.focus();
-
-                navigator.clipboard
-                  .writeText(msg)
-                  .then(() => {
-                    document.execCommand("paste");
-                  })
-                  .catch(() => {
-                    document.execCommand("insertText", false, msg);
-                  });
-
-                setTimeout(() => {
-                  const sendBtn = document.querySelector(
-                    "span[data-icon='send']"
-                  );
-                  if (sendBtn) sendBtn.click();
-                  resolve(true);
-                }, 500);
-              });
+              setTimeout(() => {
+                const sendBtn = document.querySelector("span[data-icon='send']");
+                if (sendBtn) sendBtn.click();
+                resolve(true);
+              }, 1000);
             });
-          };
+          });
+        };
 
-          for (const group of groupList) {
-            const found = await waitForGroupAndClick(group);
+        const uploadStatus = async (imageUrl, caption) => {
+          try {
+            const blob = await (await fetch(imageUrl)).blob();
+            const reader = new FileReader();
+
+            await new Promise((resolve) => {
+              reader.onloadend = () => {
+                const imageData = reader.result;
+
+                const waitForElement = (selector, timeout = 10000) => {
+                  return new Promise((resolve, reject) => {
+                    const start = Date.now();
+                    const interval = setInterval(() => {
+                      const el = document.querySelector(selector);
+                      if (el) {
+                        clearInterval(interval);
+                        resolve(el);
+                      } else if (Date.now() - start > timeout) {
+                        clearInterval(interval);
+                        reject("Timeout waiting for " + selector);
+                      }
+                    }, 500);
+                  });
+                };
+
+                const simulateUpload = async () => {
+                  try {
+                    const statusBtn = await waitForElement('[aria-label="Status"], [data-testid="status-v3"]');
+                    statusBtn.click();
+
+                    const plusBtn = await waitForElement('button[aria-label="Add Status"], [data-testid="status-add"]');
+                    plusBtn.click();
+
+                    const mediaBtn = await waitForElement('li[role="button"] span[data-icon="media-multiple"]');
+                    mediaBtn.closest("li").click();
+
+                    const fileInput = await waitForElement('input[type="file"]');
+                    const dt = new DataTransfer();
+                    dt.items.add(new File([blob], "status.jpg", { type: blob.type }));
+                    fileInput.files = dt.files;
+                    fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+                    const captionBox = await waitForElement('div[contenteditable="true"]');
+                    captionBox.focus();
+                    document.execCommand("insertText", false, caption);
+                    captionBox.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+                    captionBox.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", bubbles: true }));
+
+                    console.log("✅ Status uploaded:", caption);
+                  } catch (err) {
+                    console.error("⚠️ Failed uploading status", err);
+                  }
+                };
+
+                simulateUpload();
+                resolve();
+              };
+
+              reader.readAsDataURL(blob);
+            });
+          } catch (err) {
+            console.error("❌ Error in status upload", err);
+          }
+        };
+
+        const sendToList = async (list, label) => {
+          for (const name of list) {
+            const found = await waitForGroupAndClick(name);
             if (!found) {
-              alert(`⚠️ Group "${group}" not found.`);
+              alert(`⚠️ ${label} "${name}" not found.`);
               continue;
             }
 
             for (const product of products) {
-              const msg = `🛒 *${product.name}*\n💰 Price: $${
-                product.price
-              }\n🔗 ${product.affiliateUrl}\n\n${product.description || ""}`;
-              await sendMessage(msg);
-              await sleep(1500);
+              const msg = `🛒 *${product.title}*\n💰 Price: $${product.price}\n🔗 ${product.amazon_product_url}\n\n${product.description || ""}\nAffiliated Url: ${product.product_affiliate_url}`;
+              await sendMessage(msg, product.image);
+              await uploadStatus(product.image, product.description || product.title);
+              await sleep(2000);
             }
 
             await sleep(2000);
           }
+        };
 
-          alert("✅ All products sent to all groups!");
-        },
-      });
+        await sendToList(groupList, "Group");
+        await sendToList(communityList, "Community");
+
+        alert("✅ All products sent + statuses uploaded!");
+      },
     });
-  };
+  });
+};
+
+
 
 
 
   return (
-    <div style={{ width: 600, maxHeight: 400 }}>
+    <div style={{width: 600 ,backgroundColor:"#FDFBD4",padding:"20px",borderRadius:30}}>
       <h3 onClick={() => navigate(-1)} style={styles.backButton}>
         ← Back
       </h3>
       <div
         style={{
-          height: "80vh",
+          height: "70vh",
           overflowY: "auto",
           padding: 10,
         }}
@@ -267,22 +787,20 @@ const ProductList = () => {
           }}
         >
           <h1
-            style={{ marginLeft: 10, marginBlockEnd: 0, marginBlockStart: 4 }}
+            style={{ marginBlockEnd: 0, marginBlockStart: 4,fontWeight:"400" }}
           >
             Product List
           </h1>
           <button
             style={styles.addNumberButton}
             onClick={handleSend}
-            onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
-            onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
           >
             Start
           </button>
         </divm>
         {productArray.map((item, index) => (
           <div
-            key={item.id}
+            key={item?.id}
             style={{
               display: "flex",
               borderBottom: "1px solid grey",
@@ -295,8 +813,8 @@ const ProductList = () => {
               {index + 1}.
             </h4>
             <img
-              style={{ width: "5%", height: "5%" }}
-              src={item.image}
+              style={{ width: "8%", height: "8%" }}
+              src={item?.image_url}
               alt=""
             />
             <div style={{ marginLeft: 10, width: "70%" }}>
@@ -307,9 +825,9 @@ const ProductList = () => {
                   fontWeight: 500,
                 }}
               >
-                {item.name}
+                {item?.title}
               </h5>
-              <div style={{ display: "flex", marginTop: 10 }}>
+              {/* <div style={{ display: "flex", marginTop: 10 }}>
                 <Checkbox
                   label="Groups"
                   isChecked={groupItems.some((i) => i.id === item.id)}
@@ -329,7 +847,7 @@ const ProductList = () => {
                     handleToggle(item, statusItems, setStatusItems)
                   }
                 />
-              </div>
+              </div> */}
             </div>
           </div>
         ))}
@@ -376,3 +894,8 @@ const Checkbox = ({ label, isChecked, onChange }) => (
 );
 
 export default ProductList;
+
+
+
+
+
