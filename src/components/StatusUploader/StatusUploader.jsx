@@ -1,91 +1,73 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { getProductList } from "../../service/api/mobileApi";
 
-export const handleUpload = async () => {
-    for (const product of products) {
-      try {
-        const response = await fetch(product.image);
-        const blob = await response.blob();
-        const reader = new FileReader();
+export const handleUpload = async (productArray) => {
+  for (const product of productArray) {
+    try {
+      const response = await fetch(product.image_url);
+      const blob = await response.blob();
+      const reader = new FileReader();
 
-        await new Promise((resolve) => {
-          reader.onloadend = () => {
-            const imageData = reader.result;
+      await new Promise((resolve) => {
+        reader.onloadend = () => {
+          const imageData = reader.result;
 
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-              chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
-                func: uploadStatusToWhatsApp,
-                args: [imageData, product.description],
-              });
-              resolve(); // Wait a bit before uploading the next one
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.scripting.executeScript({
+              target: { tabId: tabs[0].id },
+              func: uploadStatusToWhatsApp,
+              args: [imageData, product.description],
             });
-          };
+            resolve();
+          });
+        };
 
-          reader.readAsDataURL(blob);
-        });
+        reader.readAsDataURL(blob);
+      });
 
-        // Optional: wait between uploads to let WhatsApp handle each
-        await new Promise((r) => setTimeout(r, 3000)); // wait 3 seconds
+      // Wait between uploads
+      await new Promise((r) => setTimeout(r, 5000)); // wait 5 seconds
 
-      } catch (err) {
-        console.error("Error preparing image:", err);
-        alert("Failed to upload one of the statuses.");
-      }
+    } catch (err) {
+      console.error("Error preparing image:", err);
+      alert("Failed to upload one of the statuses.");
     }
-
-
-  };
+  }
+};
 
 const StatusUploader = () => {
-  // Multiple products to upload
-  // const products = [
-  //   {
-  //     id: 155842,
-  //     name: "URMYWO Busy Board - Montessori Toddler Activities",
-  //     image: "https://m.media-amazon.com/images/I/51bAwOJOEtL._SL500_.jpg",
-  //     description:
-  //       "Keep your little one entertained for hours with our innovative URMYWO Busy Board.",
-  //   },
-  //   {
-  //     id: 155843,
-  //     name: "Educational Wooden Puzzle - Animal Shapes",
-  //     image: "https://m.media-amazon.com/images/I/71AvQd3VzqL._SL1500_.jpg",
-  //     description:
-  //       "Help your kids learn animal names and shapes with this colorful wooden puzzle set.",
-  //   },
-  //   {
-  //     id: 155844,
-  //     name: "STEM Building Blocks Set - 150 Pieces",
-  //     image: "https://m.media-amazon.com/images/I/81mC5xn8x4L._AC_SL1500_.jpg",
-  //     description:
-  //       "Encourage problem-solving and creativity with our 150-piece STEM building blocks set.",
-  //   },
-  //   {
-  //     id: 155845,
-  //     name: "Magnetic Drawing Board for Toddlers",
-  //     image: "https://m.media-amazon.com/images/I/71X4kjy2-FL._AC_SL1500_.jpg",
-  //     description:
-  //       "Let your kids express creativity with this erasable and reusable magnetic drawing board.",
-  //   },
-  // ];
+  const [productArray, setProductArray] = useState([]);
 
-  
+  useEffect(() => {
+    getProducts();
+  }, []);
+
+  const getProducts = async () => {
+    try {
+      const { data } = await getProductList(5);
+      setProductArray(data?.data || []);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
 
   return (
     <div>
       <h2>Upload Multiple WhatsApp Statuses</h2>
-      {/* <button onClick={handleUpload}>Upload All</button> */}
+      <button onClick={() => handleUpload(productArray)}>Upload All</button>
     </div>
   );
 };
 
 function uploadStatusToWhatsApp(imageData, caption) {
-  const waitForElement = (selector, timeout = 10000) => {
+  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+  const waitForElement = (selector, timeout = 15000) => {
     return new Promise((resolve, reject) => {
       const start = Date.now();
       const interval = setInterval(() => {
         const el = document.querySelector(selector);
-        if (el) {
+        if (el && el.offsetParent !== null) {
           clearInterval(interval);
           resolve(el);
         } else if (Date.now() - start > timeout) {
@@ -98,31 +80,51 @@ function uploadStatusToWhatsApp(imageData, caption) {
 
   const simulateUpload = async () => {
     try {
-      const statusBtn = await waitForElement('[aria-label="Status"], [data-testid="status-v3"]');
-      statusBtn.click();
+      const statusBtn = await waitForElement('[aria-label="Status"], [data-testid="status-v3"], span[data-icon="status"]');
+      (statusBtn.closest("button") || statusBtn).click();
+      await sleep(2000);
 
-      const plusBtn = await waitForElement('button[aria-label="Add Status"], [data-testid="status-add"]');
-      plusBtn.click();
+      const addBtn = await waitForElement('div[aria-label*="Add status"], button[aria-label*="Add status"], span[data-icon="plus"], [data-testid="status-add"]');
+      addBtn.click();
+      await sleep(2000);
 
-      const mediaBtn = await waitForElement('li[role="button"] span[data-icon="media-multiple"]');
-      mediaBtn.closest("li").click();
+      const fileInput = document.querySelector('input[type="file"]');
+      if (!fileInput) throw new Error("File input not found");
 
-      const fileInput = await waitForElement('input[type="file"]');
-      const blob = await (await fetch(imageData)).blob();
+      const base64Data = imageData.split(",")[1];
+      const mimeMatch = imageData.match(/^data:(image\/[a-zA-Z]+);base64,/);
+      const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const blob = new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+
+      const file = new File([blob], "status.jpg", { type: mimeType });
       const dt = new DataTransfer();
-      dt.items.add(new File([blob], "status.jpg", { type: blob.type }));
+      dt.items.add(file);
       fileInput.files = dt.files;
+
+      fileInput.dispatchEvent(new Event("input", { bubbles: true }));
       fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+      await sleep(4000); // Let WhatsApp load preview
 
       const captionBox = await waitForElement('div[contenteditable="true"]');
       captionBox.focus();
       document.execCommand("insertText", false, caption);
+      await sleep(1000);
 
-      captionBox.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-      captionBox.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", bubbles: true }));
+      const sendBtn = document.querySelector('span[data-icon="send"]')?.closest("button");
+      if (sendBtn) {
+        sendBtn.click();
+        console.log("✅ Status sent successfully:", caption);
+      } else {
+        console.error("❌ Send button not found");
+      }
 
-      console.log("Status uploaded:", caption);
     } catch (err) {
       console.error("Upload failed:", err);
       alert("Error: " + err);

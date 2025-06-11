@@ -105,11 +105,16 @@ export const deleteGroup = async({id}) =>{
 
 // Send Group
 
-export const sendProduct = async()=>{
+export const sendProduct = async(requiredData)=>{
    try {
-    const response = await instance.post(`products/send`)
+    const response = await instance.post(`products/send`,requiredData)
     return response;
   } catch (error) {
     throw error;
   }
 }
+
+
+
+
+
