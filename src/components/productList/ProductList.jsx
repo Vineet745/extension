@@ -2,20 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./productListStyle";
 import { getGroups, getProductList, sendProduct } from "../../service/api/mobileApi";
-import { handleUpload } from "../../utils/commonFunction";
-import instance from "../../service/instance";
+
 
 const ProductList = () => {
   const location = useLocation();
   const item = location.state?.item;
   const navigate = useNavigate();
-
-
-
-  // State arrays to hold the whole item objects
-  const [groupItems, setGroupItems] = useState([]);
-  const [communityItems, setCommunityItems] = useState([]);
-  const [statusItems, setStatusItems] = useState([]);
   const [groups, setGroups] = useState([]);
   const [productArray, setProductArray] = useState([])
 
@@ -25,24 +17,7 @@ const ProductList = () => {
     getGroupsAndCommunity();
   }, []);
 
-  
 
-  // Get Group And community
-
-  // const getGroupsAndCommunity = async () => {
-  //   const requiredData = {
-  //     mobile_number_id: 5,
-  //   };
-  //   try {
-  //     const { data } = await getGroups(requiredData);
-  //     const groupNamesArray = data?.whatsapp_type_names?.data?.map(
-  //       (item) => item.name
-  //     );
-  //     setGroups(groupNamesArray);
-  //   } catch (error) {
-  //     console.log("error", error);
-  //   }
-  // };
 
 
   const getGroupsAndCommunity = async () => {
@@ -370,185 +345,6 @@ const ProductList = () => {
 
 // Handle Send message with the image
 
-// const handleSend = async () => {
-//   const cleanedGroups = groups
-//     .filter((g) => g?.name?.trim() !== "")
-//     .map((g) => ({ name: g.name.trim(), type: g.type }));
-
-//   if (cleanedGroups.length === 0) {
-//     alert("⚠️ Please enter at least one group or community name.");
-//     return;
-//   }
-
-//   const groupList = cleanedGroups
-//     .filter((g) => g.type === 1)
-//     .map((g) => g.name);
-//   const communityList = cleanedGroups
-//     .filter((g) => g.type === 2)
-//     .map((g) => g.name);
-
-//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//     chrome.scripting.executeScript({
-//       target: { tabId: tabs[0].id },
-//       args: [groupList, communityList, productArray],
-//       func: async (groupList, communityList, products) => {
-//         const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
-
-//         const waitForGroupAndClick = async (groupName, maxAttempts = 30) => {
-//           for (let i = 0; i < maxAttempts; i++) {
-//             const allSpans = [...document.querySelectorAll("span[title]")];
-//             const match = allSpans.find((el) => {
-//               const title = el.getAttribute("title")?.toLowerCase() || "";
-//               const text = el.textContent?.toLowerCase() || "";
-//               return (
-//                 title.includes(groupName.toLowerCase()) ||
-//                 text.includes(groupName.toLowerCase())
-//               );
-//             });
-
-//             if (match) {
-//               let clickable = match;
-//               for (let j = 0; j < 10 && clickable; j++) {
-//                 if (
-//                   clickable.getAttribute("role") === "listitem" ||
-//                   clickable.getAttribute("role") === "button" ||
-//                   clickable.tagName === "BUTTON" ||
-//                   clickable.tagName === "DIV"
-//                 )
-//                   break;
-//                 clickable = clickable.parentElement;
-//               }
-
-//               if (clickable) {
-//                 ["mousedown", "mouseup", "click"].forEach((type) =>
-//                   clickable.dispatchEvent(
-//                     new MouseEvent(type, {
-//                       bubbles: true,
-//                       cancelable: true,
-//                       view: window,
-//                     })
-//                   )
-//                 );
-//                 await sleep(2000);
-//                 return true;
-//               }
-//             }
-//             await sleep(800);
-//           }
-//           return false;
-//         };
-
-//         const waitForChatToOpen = async (callback, maxAttempts = 30) => {
-//           for (let i = 0; i < maxAttempts; i++) {
-//             const box = document.querySelector(
-//               "div[contenteditable='true'][data-tab='10']"
-//             );
-//             if (box && box.offsetParent !== null) {
-//               callback();
-//               return;
-//             }
-//             await sleep(1000);
-//           }
-//           alert("❌ Message box not available.");
-//         };
-
-//         const fetchImageAsFile = async (url, fileName = "image.jpg") => {
-//           const res = await fetch(url);
-//           const blob = await res.blob();
-//           return new File([blob], fileName, { type: blob.type });
-//         };
-
-//         const sendImage = async (imageUrl) => {
-//           try {
-//             const imageFile = await fetchImageAsFile(imageUrl);
-//             const dataTransfer = new DataTransfer();
-//             dataTransfer.items.add(imageFile);
-
-//             const fileInput = document.createElement("input");
-//             fileInput.type = "file";
-//             fileInput.style.display = "none";
-//             fileInput.accept = "image/*";
-//             document.body.appendChild(fileInput);
-//             fileInput.files = dataTransfer.files;
-
-//             fileInput.dispatchEvent(new Event("change", { bubbles: true }));
-
-//             const actualInput = document.querySelector("input[type='file']");
-//             if (actualInput) {
-//               actualInput.files = dataTransfer.files;
-//               actualInput.dispatchEvent(new Event("change", { bubbles: true }));
-//               await sleep(3000);
-//             }
-
-//             fileInput.remove();
-//           } catch (err) {
-//             console.error("⚠️ Error uploading image", err);
-//           }
-//         };
-
-//         const sendMessage = async (msg, imageUrl) => {
-//           return new Promise(async (resolve) => {
-//             waitForChatToOpen(async () => {
-//               if (imageUrl) {
-//                 await sendImage(imageUrl);
-//               }
-
-//               const messageBox = document.querySelector(
-//                 "div[contenteditable='true'][data-tab='10']"
-//               );
-//               if (!messageBox) {
-//                 resolve(false);
-//                 return;
-//               }
-
-//               messageBox.focus();
-//               document.execCommand("insertText", false, msg);
-
-//               setTimeout(() => {
-//                 const sendBtn = document.querySelector(
-//                   "span[data-icon='send']"
-//                 );
-//                 if (sendBtn) sendBtn.click();
-//                 resolve(true);
-//               }, 1000);
-//             });
-//           });
-//         };
-
-//         const sendToList = async (list, label) => {
-//           for (const name of list) {
-//             const found = await waitForGroupAndClick(name);
-//             if (!found) {
-//               alert(`⚠️ ${label} "${name}" not found.`);
-//               continue;
-//             }
-
-//             for (const product of products) {
-//               const msg = `🛒 *${product.title}*\n💰 Price: $${
-//                 product.price
-//               }\n🔗 ${product.amazon_product_url}\n\n${
-//                 product.description || ""
-//               }\nAffiliated Url: ${product.product_affiliate_url}`;
-//               await sendMessage(msg, product.image); // ✅ image sent via <input type="file">
-//               await sleep(1500);
-//             }
-
-//             await sleep(2000);
-//           }
-//         };
-
-//         await sendToList(groupList, "Group");
-//         // Sending the id in the group
-
-//         await sendToList(communityList, "Community");
-
-//         alert("✅ All products sent to all groups and communities!");
-//       },
-//     });
-//   });
-// };
-
-
 const handleSend = async () => {
   const cleanedGroups = groups
     .filter((g) => g?.name?.trim() !== "")
@@ -599,9 +395,6 @@ const handleSend = async () => {
               }
 
               if (clickable) {
-                clickable.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                await sleep(500);
-                
                 ["mousedown", "mouseup", "click"].forEach((type) =>
                   clickable.dispatchEvent(
                     new MouseEvent(type, {
@@ -611,7 +404,7 @@ const handleSend = async () => {
                     })
                   )
                 );
-                await sleep(3000);
+                await sleep(2000);
                 return true;
               }
             }
@@ -620,573 +413,755 @@ const handleSend = async () => {
           return false;
         };
 
-        const waitForChatToOpen = async (maxAttempts = 30) => {
+        const waitForChatToOpen = async (callback, maxAttempts = 30) => {
           for (let i = 0; i < maxAttempts; i++) {
-            const selectors = [
-              "div[contenteditable='true'][data-tab='10']",
-              "div[contenteditable='true'][role='textbox']",
-              "[data-testid='conversation-compose-box-input']",
-              "div[contenteditable='true']"
-            ];
-            
-            for (const selector of selectors) {
-              const box = document.querySelector(selector);
-              if (box && box.offsetParent !== null) {
-                return box;
-              }
+            const box = document.querySelector(
+              "div[contenteditable='true'][data-tab='10']"
+            );
+            if (box && box.offsetParent !== null) {
+              callback();
+              return;
             }
             await sleep(1000);
           }
-          return null;
+          alert("❌ Message box not available.");
         };
 
-        // NEW FUNCTION: Upload to WhatsApp Status
-        const uploadToStatus = async (imageUrl, caption) => {
-          try {
-            console.log('Starting status upload...');
-            
-            // Look for status/my status button - multiple possible selectors
-            const statusSelectors = [
-              '[data-testid="status-v3-ring"]',
-              '[title*="My status"]',
-              '[aria-label*="My status"]',
-              'span[data-icon="status-v3-ring"]',
-              '[data-testid="my-status"]',
-              'div[title="My status"]'
-            ];
-
-            let statusBtn = null;
-            for (const selector of statusSelectors) {
-              statusBtn = document.querySelector(selector);
-              if (statusBtn) {
-                console.log(`Found status button with selector: ${selector}`);
-                break;
-              }
-            }
-
-            if (!statusBtn) {
-              // Try to find status by text content
-              const statusElements = [...document.querySelectorAll('*')].filter(el => {
-                const text = el.textContent?.toLowerCase() || '';
-                return text.includes('my status') || text.includes('status');
-              });
-              
-              if (statusElements.length > 0) {
-                statusBtn = statusElements.find(el => 
-                  el.getAttribute('role') === 'button' || 
-                  el.tagName === 'BUTTON' ||
-                  el.closest('[role="button"]')
-                ) || statusElements[0];
-              }
-            }
-
-            if (!statusBtn) {
-              console.log('Status button not found, trying alternative approach...');
-              // Alternative: click on profile/status area in sidebar
-              const sidebarStatus = document.querySelector('#side div[role="button"]') ||
-                                   document.querySelector('div[data-testid="chatlist-header"] ~ div[role="button"]');
-              if (sidebarStatus) statusBtn = sidebarStatus;
-            }
-
-            if (statusBtn) {
-              console.log('Clicking status button...');
-              statusBtn.click();
-              await sleep(2000);
-
-              // Look for camera/add status button
-              const addStatusSelectors = [
-                '[data-testid="status-camera"]',
-                'span[data-icon="camera"]',
-                '[aria-label*="Camera"]',
-                '[title*="Camera"]',
-                'button[aria-label*="Add"]',
-                '[data-testid="add-status"]'
-              ];
-
-              let addBtn = null;
-              for (const selector of addStatusSelectors) {
-                addBtn = document.querySelector(selector);
-                if (addBtn) {
-                  console.log(`Found add status button: ${selector}`);
-                  break;
-                }
-              }
-
-              if (addBtn) {
-                addBtn.click();
-                await sleep(1500);
-
-                // Get image as blob and create file
-                const response = await fetch(imageUrl);
-                const blob = await response.blob();
-                const file = new File([blob], 'status-image.jpg', { type: blob.type });
-
-                // Look for file input or drag area
-                const fileInput = document.querySelector('input[type="file"][accept*="image"]');
-                
-                if (fileInput) {
-                  console.log('Using file input method...');
-                  const dataTransfer = new DataTransfer();
-                  dataTransfer.items.add(file);
-                  fileInput.files = dataTransfer.files;
-                  fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-                  await sleep(3000);
-                } else {
-                  console.log('Using drag and drop method...');
-                  // Try drag and drop approach
-                  const dropArea = document.querySelector('[data-testid="status-composer"]') ||
-                                   document.querySelector('.status-composer') ||
-                                   document.body;
-
-                  const dataTransfer = new DataTransfer();
-                  dataTransfer.items.add(file);
-
-                  const dropEvent = new DragEvent('drop', {
-                    bubbles: true,
-                    cancelable: true,
-                    dataTransfer: dataTransfer
-                  });
-
-                  dropArea.dispatchEvent(new DragEvent('dragenter', {
-                    bubbles: true,
-                    cancelable: true,
-                    dataTransfer: dataTransfer
-                  }));
-                  
-                  await sleep(300);
-                  
-                  dropArea.dispatchEvent(new DragEvent('dragover', {
-                    bubbles: true,
-                    cancelable: true,
-                    dataTransfer: dataTransfer
-                  }));
-                  
-                  await sleep(300);
-                  dropArea.dispatchEvent(dropEvent);
-                  await sleep(3000);
-                }
-
-                // Add caption to status
-                const captionSelectors = [
-                  '[data-testid="status-text-input"]',
-                  'div[contenteditable="true"][data-lexical-editor="true"]',
-                  '[placeholder*="Type a caption"]',
-                  'textarea[placeholder*="caption"]',
-                  'div[contenteditable="true"]'
-                ];
-
-                let captionInput = null;
-                for (const selector of captionSelectors) {
-                  captionInput = document.querySelector(selector);
-                  if (captionInput && captionInput.offsetParent !== null) {
-                    console.log(`Found caption input: ${selector}`);
-                    break;
-                  }
-                }
-
-                if (captionInput) {
-                  captionInput.focus();
-                  await sleep(500);
-                  captionInput.textContent = caption;
-                  captionInput.dispatchEvent(new Event('input', { bubbles: true }));
-                  await sleep(1000);
-                }
-
-                // Send/Post status
-                const sendStatusSelectors = [
-                  '[data-testid="send-status"]',
-                  'span[data-icon="send"]',
-                  'button[aria-label*="Send"]',
-                  '[data-testid="status-send"]',
-                  'button:has(span[data-icon="send"])'
-                ];
-
-                let sendStatusBtn = null;
-                for (const selector of sendStatusSelectors) {
-                  sendStatusBtn = document.querySelector(selector);
-                  if (sendStatusBtn && !sendStatusBtn.disabled) {
-                    console.log(`Found send status button: ${selector}`);
-                    break;
-                  }
-                }
-
-                if (sendStatusBtn) {
-                  console.log('Posting status...');
-                  sendStatusBtn.click();
-                  await sleep(2000);
-                  return true;
-                } else {
-                  console.log('Send status button not found');
-                }
-              } else {
-                console.log('Add status button not found');
-              }
-            } else {
-              console.log('Status button not found');
-              return false;
-            }
-
-            return false;
-          } catch (error) {
-            console.error("Error uploading to status:", error);
-            return false;
-          }
+        const fetchImageAsFile = async (url, fileName = "image.jpg") => {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          return new File([blob], fileName, { type: blob.type });
         };
 
-        const sendImageWithCaption = async (imageUrl, caption) => {
+        const sendImage = async (imageUrl) => {
           try {
-            // First, get the image as blob
-            const response = await fetch(imageUrl);
-            const blob = await response.blob();
-            const file = new File([blob], 'product-image.jpg', { type: blob.type });
+            const imageFile = await fetchImageAsFile(imageUrl);
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(imageFile);
 
-            // Method 1: Try the direct drag and drop approach
-            const messageContainer = document.querySelector('#main') || 
-                                   document.querySelector('[data-testid="conversation-panel-body"]') ||
-                                   document.querySelector('.copyable-text');
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.style.display = "none";
+            fileInput.accept = "image/*";
+            document.body.appendChild(fileInput);
+            fileInput.files = dataTransfer.files;
 
-            if (messageContainer) {
-              const dataTransfer = new DataTransfer();
-              dataTransfer.items.add(file);
+            fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 
-              // Create and dispatch drag events
-              const dragEnterEvent = new DragEvent('dragenter', {
-                bubbles: true,
-                cancelable: true,
-                dataTransfer: dataTransfer
-              });
-
-              const dragOverEvent = new DragEvent('dragover', {
-                bubbles: true,
-                cancelable: true,
-                dataTransfer: dataTransfer
-              });
-
-              const dropEvent = new DragEvent('drop', {
-                bubbles: true,
-                cancelable: true,
-                dataTransfer: dataTransfer
-              });
-
-              messageContainer.dispatchEvent(dragEnterEvent);
-              await sleep(500);
-              messageContainer.dispatchEvent(dragOverEvent);
-              await sleep(500);
-              messageContainer.dispatchEvent(dropEvent);
-              
-              // Wait for image preview to appear
+            const actualInput = document.querySelector("input[type='file']");
+            if (actualInput) {
+              actualInput.files = dataTransfer.files;
+              actualInput.dispatchEvent(new Event("change", { bubbles: true }));
               await sleep(3000);
-
-              // Look for caption input in the media preview
-              const captionSelectors = [
-                '[data-testid="media-caption-input"]',
-                'div[contenteditable="true"][data-lexical-editor="true"]',
-                '.lexical-rich-text-input',
-                '[role="textbox"][contenteditable="true"]'
-              ];
-
-              let captionInput = null;
-              for (const selector of captionSelectors) {
-                captionInput = document.querySelector(selector);
-                if (captionInput) break;
-              }
-
-              if (captionInput) {
-                captionInput.focus();
-                await sleep(500);
-                captionInput.textContent = caption;
-                captionInput.dispatchEvent(new Event('input', { bubbles: true }));
-                await sleep(1000);
-
-                // Find and click send button
-                const sendSelectors = [
-                  '[data-testid="send"]',
-                  'span[data-icon="send"]',
-                  'button[aria-label*="Send"]',
-                  '[role="button"][data-testid="send"]'
-                ];
-
-                let sendBtn = null;
-                for (const selector of sendSelectors) {
-                  sendBtn = document.querySelector(selector);
-                  if (sendBtn && !sendBtn.disabled) break;
-                }
-
-                if (sendBtn) {
-                  sendBtn.click();
-                  await sleep(2000);
-                  return true;
-                }
-              }
             }
 
-            // Method 2: Try using clipboard API
-            try {
-              const clipboardItem = new ClipboardItem({
-                [blob.type]: blob
-              });
-              
-              await navigator.clipboard.write([clipboardItem]);
-              
-              const messageBox = await waitForChatToOpen();
-              if (messageBox) {
-                messageBox.focus();
-                await sleep(500);
-                
-                // Paste the image
-                document.execCommand('paste');
-                await sleep(3000);
-                
-                // Add caption
-                const captionInput = document.querySelector('[data-testid="media-caption-input"]') ||
-                                   document.querySelector('div[contenteditable="true"][data-lexical-editor="true"]');
-                
-                if (captionInput) {
-                  captionInput.focus();
-                  captionInput.textContent = caption;
-                  captionInput.dispatchEvent(new Event('input', { bubbles: true }));
-                  await sleep(1000);
-                }
-                
-                // Send
-                const sendBtn = document.querySelector('[data-testid="send"]') ||
-                               document.querySelector('span[data-icon="send"]');
-                if (sendBtn) {
-                  sendBtn.click();
-                  await sleep(2000);
-                  return true;
-                }
-              }
-            } catch (clipboardError) {
-              console.log('Clipboard method failed:', clipboardError);
-            }
-
-            // Method 3: Try attachment menu approach
-            const attachSelectors = [
-              '[data-testid="clip"]',
-              'span[data-icon="clip"]',
-              '[title*="Attach"]',
-              'button[aria-label*="Attach"]'
-            ];
-
-            let attachBtn = null;
-            for (const selector of attachSelectors) {
-              attachBtn = document.querySelector(selector);
-              if (attachBtn) break;
-            }
-
-            if (attachBtn) {
-              attachBtn.click();
-              await sleep(1500);
-
-              // Look for photo/image option
-              const photoSelectors = [
-                '[data-testid="attach-image"]',
-                'span[data-icon="image"]',
-                'input[accept*="image"]',
-                '[title*="Photos"]'
-              ];
-
-              let photoBtn = null;
-              for (const selector of photoSelectors) {
-                photoBtn = document.querySelector(selector);
-                if (photoBtn) break;
-              }
-
-              if (photoBtn) {
-                if (photoBtn.tagName === 'INPUT') {
-                  const dataTransfer = new DataTransfer();
-                  dataTransfer.items.add(file);
-                  photoBtn.files = dataTransfer.files;
-                  photoBtn.dispatchEvent(new Event('change', { bubbles: true }));
-                } else {
-                  photoBtn.click();
-                  await sleep(1000);
-                  
-                  const fileInput = document.querySelector('input[type="file"][accept*="image"]');
-                  if (fileInput) {
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    fileInput.files = dataTransfer.files;
-                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                }
-
-                await sleep(3000);
-                
-                // Add caption
-                const captionInput = document.querySelector('[data-testid="media-caption-input"]');
-                if (captionInput) {
-                  captionInput.focus();
-                  captionInput.textContent = caption;
-                  captionInput.dispatchEvent(new Event('input', { bubbles: true }));
-                  await sleep(1000);
-                }
-
-                // Send
-                const sendBtn = document.querySelector('[data-testid="send"]') ||
-                               document.querySelector('span[data-icon="send"]');
-                if (sendBtn) {
-                  sendBtn.click();
-                  await sleep(2000);
-                  return true;
-                }
-              }
-            }
-
-            return false;
-          } catch (error) {
-            console.error("Error sending image:", error);
-            return false;
+            fileInput.remove();
+          } catch (err) {
+            console.error("⚠️ Error uploading image", err);
           }
         };
 
-        const sendTextMessage = async (message) => {
-          const messageBox = await waitForChatToOpen();
-          if (!messageBox) return false;
+        const sendMessage = async (msg, imageUrl) => {
+          return new Promise(async (resolve) => {
+            waitForChatToOpen(async () => {
+              if (imageUrl) {
+                await sendImage(imageUrl);
+              }
 
-          messageBox.focus();
-          await sleep(500);
-          
-          // Clear and set message
-          messageBox.textContent = '';
-          await sleep(200);
-          
-          // Try multiple methods to set text
-          messageBox.textContent = message;
-          messageBox.dispatchEvent(new Event('input', { bubbles: true }));
-          
-          if (messageBox.textContent !== message) {
-            document.execCommand("insertText", false, message);
-          }
-          
-          if (messageBox.textContent !== message) {
-            messageBox.innerHTML = message.replace(/\n/g, '<br>');
-            messageBox.dispatchEvent(new Event('input', { bubbles: true }));
-          }
+              const messageBox = document.querySelector(
+                "div[contenteditable='true'][data-tab='10']"
+              );
+              if (!messageBox) {
+                resolve(false);
+                return;
+              }
 
-          await sleep(1000);
+              messageBox.focus();
+              document.execCommand("insertText", false, msg);
 
-          // Send message
-          const sendSelectors = [
-            '[data-testid="send"]',
-            'span[data-icon="send"]',
-            'button[aria-label*="Send"]'
-          ];
-
-          let sendBtn = null;
-          for (const selector of sendSelectors) {
-            sendBtn = document.querySelector(selector);
-            if (sendBtn && !sendBtn.disabled) break;
-          }
-
-          if (sendBtn) {
-            sendBtn.click();
-            await sleep(1500);
-            return true;
-          }
-
-          // Fallback: try Enter key
-          messageBox.dispatchEvent(new KeyboardEvent('keydown', {
-            key: 'Enter',
-            code: 'Enter',
-            bubbles: true
-          }));
-          await sleep(1500);
-          return true;
+              setTimeout(() => {
+                const sendBtn = document.querySelector(
+                  "span[data-icon='send']"
+                );
+                if (sendBtn) sendBtn.click();
+                resolve(true);
+              }, 1000);
+            });
+          });
         };
 
         const sendToList = async (list, label) => {
           for (const name of list) {
-            console.log(`Processing ${label}: ${name}`);
             const found = await waitForGroupAndClick(name);
             if (!found) {
               alert(`⚠️ ${label} "${name}" not found.`);
               continue;
             }
 
-            // Wait for chat to fully load
-            await sleep(2000);
-
             for (const product of products) {
-              const message = `🛒 *${product.title}*\n💰 Price: $${product.price}\n🔗 ${product.amazon_product_url}\n\n${product.description || ""}\nAffiliated Url: ${product.product_affiliate_url}`;
-              
-              let success = false;
-              
-              // Try to send with image first
-              if (product.image) {
-                console.log(`Sending product with image: ${product.title}`);
-                success = await sendImageWithCaption(product.image, message);
-                
-                if (!success) {
-                  console.log('Image sending failed, falling back to text only');
-                  success = await sendTextMessage(message);
-                }
-              } else {
-                // Send text only
-                success = await sendTextMessage(message);
-              }
-
-              if (!success) {
-                console.warn(`Failed to send product: ${product.title} to ${name}`);
-              }
-
-              await sleep(3000); // Wait between products
+              const msg = `🛒 *${product.title}*\n💰 Price: $${
+                product.price
+              }\n🔗 ${product.amazon_product_url}\n\n${
+                product.description || ""
+              }\nAffiliated Url: ${product.product_affiliate_url}`;
+              await sendMessage(msg, product.image); // ✅ image sent via <input type="file">
+              await sleep(1500);
             }
 
-            await sleep(2000); // Wait between groups
+            await sleep(2000);
           }
         };
 
-        // NEW FUNCTION: Upload all products to status
-        const uploadProductsToStatus = async () => {
-          console.log('Starting status uploads for all products...');
-          
-          for (let i = 0; i < products.length; i++) {
-            const product = products[i];
-            console.log(`Uploading product ${i + 1}/${products.length} to status: ${product.title}`);
-            
-            if (product.image) {
-              const statusMessage = `🛒 *${product.title}*\n💰 Price: $${product.price}\n🔗 ${product.amazon_product_url}\n\n${product.description || ""}\nAffiliated Url: ${product.product_affiliate_url}`;
-              
-              const success = await uploadToStatus(product.image, statusMessage);
-              
-              if (success) {
-                console.log(`✅ Successfully uploaded ${product.title} to status`);
-              } else {
-                console.warn(`❌ Failed to upload ${product.title} to status`);
-              }
-              
-              // Wait between status uploads to avoid rate limiting
-              await sleep(5000);
-            } else {
-              console.log(`⚠️ Skipping ${product.title} - no image available for status`);
-            }
-          }
-        };
+        await sendToList(groupList, "Group");
+        // Sending the id in the group
 
-        try {
-          console.log('Starting the automation process...');
-          
-          // First, upload all products to status
-          await uploadProductsToStatus();
-          
-          // Then send to groups and communities
-          console.log('Starting to send to groups...');
-          await sendToList(groupList, "Group");
-          
-          console.log('Starting to send to communities...');
-          await sendToList(communityList, "Community");
-          
-          alert("✅ All products sent to status, groups, and communities!");
-        } catch (error) {
-          console.error("Error in sending process:", error);
-          alert("❌ Error occurred while sending messages. Check console for details.");
-        }
+        await sendToList(communityList, "Community");
+
+        alert("✅ All products sent to all groups and communities!");
       },
     });
   });
 };
+
+  // 
+// const handleSend = async () => {
+//   const cleanedGroups = groups
+//     .filter((g) => g?.name?.trim() !== "")
+//     .map((g) => ({ name: g.name.trim(), type: g.type }));
+
+//   if (cleanedGroups.length === 0) {
+//     alert("⚠️ Please enter at least one group or community name.");
+//     return;
+//   }
+
+//   const groupList = cleanedGroups
+//     .filter((g) => g.type === 1)
+//     .map((g) => g.name);
+//   const communityList = cleanedGroups
+//     .filter((g) => g.type === 2)
+//     .map((g) => g.name);
+
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//     chrome.scripting.executeScript({
+//       target: { tabId: tabs[0].id },
+//       args: [groupList, communityList, productArray],
+//       func: async (groupList, communityList, products) => {
+//         const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+//         const waitForGroupAndClick = async (groupName, maxAttempts = 30) => {
+//           for (let i = 0; i < maxAttempts; i++) {
+//             const allSpans = [...document.querySelectorAll("span[title]")];
+//             const match = allSpans.find((el) => {
+//               const title = el.getAttribute("title")?.toLowerCase() || "";
+//               const text = el.textContent?.toLowerCase() || "";
+//               return (
+//                 title.includes(groupName.toLowerCase()) ||
+//                 text.includes(groupName.toLowerCase())
+//               );
+//             });
+
+//             if (match) {
+//               let clickable = match;
+//               for (let j = 0; j < 10 && clickable; j++) {
+//                 if (
+//                   clickable.getAttribute("role") === "listitem" ||
+//                   clickable.getAttribute("role") === "button" ||
+//                   clickable.tagName === "BUTTON" ||
+//                   clickable.tagName === "DIV"
+//                 )
+//                   break;
+//                 clickable = clickable.parentElement;
+//               }
+
+//               if (clickable) {
+//                 clickable.scrollIntoView({ behavior: 'smooth', block: 'center' });
+//                 await sleep(500);
+                
+//                 ["mousedown", "mouseup", "click"].forEach((type) =>
+//                   clickable.dispatchEvent(
+//                     new MouseEvent(type, {
+//                       bubbles: true,
+//                       cancelable: true,
+//                       view: window,
+//                     })
+//                   )
+//                 );
+//                 await sleep(3000);
+//                 return true;
+//               }
+//             }
+//             await sleep(800);
+//           }
+//           return false;
+//         };
+
+//         const waitForChatToOpen = async (maxAttempts = 30) => {
+//           for (let i = 0; i < maxAttempts; i++) {
+//             const selectors = [
+//               "div[contenteditable='true'][data-tab='10']",
+//               "div[contenteditable='true'][role='textbox']",
+//               "[data-testid='conversation-compose-box-input']",
+//               "div[contenteditable='true']"
+//             ];
+            
+//             for (const selector of selectors) {
+//               const box = document.querySelector(selector);
+//               if (box && box.offsetParent !== null) {
+//                 return box;
+//               }
+//             }
+//             await sleep(1000);
+//           }
+//           return null;
+//         };
+
+//         // NEW FUNCTION: Upload to WhatsApp Status
+//         const uploadToStatus = async (imageUrl, caption) => {
+//           try {
+//             console.log('Starting status upload...');
+            
+//             // Look for status/my status button - multiple possible selectors
+//             const statusSelectors = [
+//               '[data-testid="status-v3-ring"]',
+//               '[title*="My status"]',
+//               '[aria-label*="My status"]',
+//               'span[data-icon="status-v3-ring"]',
+//               '[data-testid="my-status"]',
+//               'div[title="My status"]'
+//             ];
+
+//             let statusBtn = null;
+//             for (const selector of statusSelectors) {
+//               statusBtn = document.querySelector(selector);
+//               if (statusBtn) {
+//                 console.log(`Found status button with selector: ${selector}`);
+//                 break;
+//               }
+//             }
+
+//             if (!statusBtn) {
+//               // Try to find status by text content
+//               const statusElements = [...document.querySelectorAll('*')].filter(el => {
+//                 const text = el.textContent?.toLowerCase() || '';
+//                 return text.includes('my status') || text.includes('status');
+//               });
+              
+//               if (statusElements.length > 0) {
+//                 statusBtn = statusElements.find(el => 
+//                   el.getAttribute('role') === 'button' || 
+//                   el.tagName === 'BUTTON' ||
+//                   el.closest('[role="button"]')
+//                 ) || statusElements[0];
+//               }
+//             }
+
+//             if (!statusBtn) {
+//               console.log('Status button not found, trying alternative approach...');
+//               // Alternative: click on profile/status area in sidebar
+//               const sidebarStatus = document.querySelector('#side div[role="button"]') ||
+//                                    document.querySelector('div[data-testid="chatlist-header"] ~ div[role="button"]');
+//               if (sidebarStatus) statusBtn = sidebarStatus;
+//             }
+
+//             if (statusBtn) {
+//               console.log('Clicking status button...');
+//               statusBtn.click();
+//               await sleep(2000);
+
+//               // Look for camera/add status button
+//               const addStatusSelectors = [
+//                 '[data-testid="status-camera"]',
+//                 'span[data-icon="camera"]',
+//                 '[aria-label*="Camera"]',
+//                 '[title*="Camera"]',
+//                 'button[aria-label*="Add"]',
+//                 '[data-testid="add-status"]'
+//               ];
+
+//               let addBtn = null;
+//               for (const selector of addStatusSelectors) {
+//                 addBtn = document.querySelector(selector);
+//                 if (addBtn) {
+//                   console.log(`Found add status button: ${selector}`);
+//                   break;
+//                 }
+//               }
+
+//               if (addBtn) {
+//                 addBtn.click();
+//                 await sleep(1500);
+
+//                 // Get image as blob and create file
+//                 const response = await fetch(imageUrl);
+//                 const blob = await response.blob();
+//                 const file = new File([blob], 'status-image.jpg', { type: blob.type });
+
+//                 // Look for file input or drag area
+//                 const fileInput = document.querySelector('input[type="file"][accept*="image"]');
+                
+//                 if (fileInput) {
+//                   console.log('Using file input method...');
+//                   const dataTransfer = new DataTransfer();
+//                   dataTransfer.items.add(file);
+//                   fileInput.files = dataTransfer.files;
+//                   fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+//                   await sleep(3000);
+//                 } else {
+//                   console.log('Using drag and drop method...');
+//                   // Try drag and drop approach
+//                   const dropArea = document.querySelector('[data-testid="status-composer"]') ||
+//                                    document.querySelector('.status-composer') ||
+//                                    document.body;
+
+//                   const dataTransfer = new DataTransfer();
+//                   dataTransfer.items.add(file);
+
+//                   const dropEvent = new DragEvent('drop', {
+//                     bubbles: true,
+//                     cancelable: true,
+//                     dataTransfer: dataTransfer
+//                   });
+
+//                   dropArea.dispatchEvent(new DragEvent('dragenter', {
+//                     bubbles: true,
+//                     cancelable: true,
+//                     dataTransfer: dataTransfer
+//                   }));
+                  
+//                   await sleep(300);
+                  
+//                   dropArea.dispatchEvent(new DragEvent('dragover', {
+//                     bubbles: true,
+//                     cancelable: true,
+//                     dataTransfer: dataTransfer
+//                   }));
+                  
+//                   await sleep(300);
+//                   dropArea.dispatchEvent(dropEvent);
+//                   await sleep(3000);
+//                 }
+
+//                 // Add caption to status
+//                 const captionSelectors = [
+//                   '[data-testid="status-text-input"]',
+//                   'div[contenteditable="true"][data-lexical-editor="true"]',
+//                   '[placeholder*="Type a caption"]',
+//                   'textarea[placeholder*="caption"]',
+//                   'div[contenteditable="true"]'
+//                 ];
+
+//                 let captionInput = null;
+//                 for (const selector of captionSelectors) {
+//                   captionInput = document.querySelector(selector);
+//                   if (captionInput && captionInput.offsetParent !== null) {
+//                     console.log(`Found caption input: ${selector}`);
+//                     break;
+//                   }
+//                 }
+
+//                 if (captionInput) {
+//                   captionInput.focus();
+//                   await sleep(500);
+//                   captionInput.textContent = caption;
+//                   captionInput.dispatchEvent(new Event('input', { bubbles: true }));
+//                   await sleep(1000);
+//                 }
+
+//                 // Send/Post status
+//                 const sendStatusSelectors = [
+//                   '[data-testid="send-status"]',
+//                   'span[data-icon="send"]',
+//                   'button[aria-label*="Send"]',
+//                   '[data-testid="status-send"]',
+//                   'button:has(span[data-icon="send"])'
+//                 ];
+
+//                 let sendStatusBtn = null;
+//                 for (const selector of sendStatusSelectors) {
+//                   sendStatusBtn = document.querySelector(selector);
+//                   if (sendStatusBtn && !sendStatusBtn.disabled) {
+//                     console.log(`Found send status button: ${selector}`);
+//                     break;
+//                   }
+//                 }
+
+//                 if (sendStatusBtn) {
+//                   console.log('Posting status...');
+//                   sendStatusBtn.click();
+//                   await sleep(2000);
+//                   return true;
+//                 } else {
+//                   console.log('Send status button not found');
+//                 }
+//               } else {
+//                 console.log('Add status button not found');
+//               }
+//             } else {
+//               console.log('Status button not found');
+//               return false;
+//             }
+
+//             return false;
+//           } catch (error) {
+//             console.error("Error uploading to status:", error);
+//             return false;
+//           }
+//         };
+
+//         const sendImageWithCaption = async (imageUrl, caption) => {
+//           try {
+//             // First, get the image as blob
+//             const response = await fetch(imageUrl);
+//             const blob = await response.blob();
+//             const file = new File([blob], 'product-image.jpg', { type: blob.type });
+
+//             // Method 1: Try the direct drag and drop approach
+//             const messageContainer = document.querySelector('#main') || 
+//                                    document.querySelector('[data-testid="conversation-panel-body"]') ||
+//                                    document.querySelector('.copyable-text');
+
+//             if (messageContainer) {
+//               const dataTransfer = new DataTransfer();
+//               dataTransfer.items.add(file);
+
+//               // Create and dispatch drag events
+//               const dragEnterEvent = new DragEvent('dragenter', {
+//                 bubbles: true,
+//                 cancelable: true,
+//                 dataTransfer: dataTransfer
+//               });
+
+//               const dragOverEvent = new DragEvent('dragover', {
+//                 bubbles: true,
+//                 cancelable: true,
+//                 dataTransfer: dataTransfer
+//               });
+
+//               const dropEvent = new DragEvent('drop', {
+//                 bubbles: true,
+//                 cancelable: true,
+//                 dataTransfer: dataTransfer
+//               });
+
+//               messageContainer.dispatchEvent(dragEnterEvent);
+//               await sleep(500);
+//               messageContainer.dispatchEvent(dragOverEvent);
+//               await sleep(500);
+//               messageContainer.dispatchEvent(dropEvent);
+              
+//               // Wait for image preview to appear
+//               await sleep(3000);
+
+//               // Look for caption input in the media preview
+//               const captionSelectors = [
+//                 '[data-testid="media-caption-input"]',
+//                 'div[contenteditable="true"][data-lexical-editor="true"]',
+//                 '.lexical-rich-text-input',
+//                 '[role="textbox"][contenteditable="true"]'
+//               ];
+
+//               let captionInput = null;
+//               for (const selector of captionSelectors) {
+//                 captionInput = document.querySelector(selector);
+//                 if (captionInput) break;
+//               }
+
+//               if (captionInput) {
+//                 captionInput.focus();
+//                 await sleep(500);
+//                 captionInput.textContent = caption;
+//                 captionInput.dispatchEvent(new Event('input', { bubbles: true }));
+//                 await sleep(1000);
+
+//                 // Find and click send button
+//                 const sendSelectors = [
+//                   '[data-testid="send"]',
+//                   'span[data-icon="send"]',
+//                   'button[aria-label*="Send"]',
+//                   '[role="button"][data-testid="send"]'
+//                 ];
+
+//                 let sendBtn = null;
+//                 for (const selector of sendSelectors) {
+//                   sendBtn = document.querySelector(selector);
+//                   if (sendBtn && !sendBtn.disabled) break;
+//                 }
+
+//                 if (sendBtn) {
+//                   sendBtn.click();
+//                   await sleep(2000);
+//                   return true;
+//                 }
+//               }
+//             }
+
+//             // Method 2: Try using clipboard API
+//             try {
+//               const clipboardItem = new ClipboardItem({
+//                 [blob.type]: blob
+//               });
+              
+//               await navigator.clipboard.write([clipboardItem]);
+              
+//               const messageBox = await waitForChatToOpen();
+//               if (messageBox) {
+//                 messageBox.focus();
+//                 await sleep(500);
+                
+//                 // Paste the image
+//                 document.execCommand('paste');
+//                 await sleep(3000);
+                
+//                 // Add caption
+//                 const captionInput = document.querySelector('[data-testid="media-caption-input"]') ||
+//                                    document.querySelector('div[contenteditable="true"][data-lexical-editor="true"]');
+                
+//                 if (captionInput) {
+//                   captionInput.focus();
+//                   captionInput.textContent = caption;
+//                   captionInput.dispatchEvent(new Event('input', { bubbles: true }));
+//                   await sleep(1000);
+//                 }
+                
+//                 // Send
+//                 const sendBtn = document.querySelector('[data-testid="send"]') ||
+//                                document.querySelector('span[data-icon="send"]');
+//                 if (sendBtn) {
+//                   sendBtn.click();
+//                   await sleep(2000);
+//                   return true;
+//                 }
+//               }
+//             } catch (clipboardError) {
+//               console.log('Clipboard method failed:', clipboardError);
+//             }
+
+//             // Method 3: Try attachment menu approach
+//             const attachSelectors = [
+//               '[data-testid="clip"]',
+//               'span[data-icon="clip"]',
+//               '[title*="Attach"]',
+//               'button[aria-label*="Attach"]'
+//             ];
+
+//             let attachBtn = null;
+//             for (const selector of attachSelectors) {
+//               attachBtn = document.querySelector(selector);
+//               if (attachBtn) break;
+//             }
+
+//             if (attachBtn) {
+//               attachBtn.click();
+//               await sleep(1500);
+
+//               // Look for photo/image option
+//               const photoSelectors = [
+//                 '[data-testid="attach-image"]',
+//                 'span[data-icon="image"]',
+//                 'input[accept*="image"]',
+//                 '[title*="Photos"]'
+//               ];
+
+//               let photoBtn = null;
+//               for (const selector of photoSelectors) {
+//                 photoBtn = document.querySelector(selector);
+//                 if (photoBtn) break;
+//               }
+
+//               if (photoBtn) {
+//                 if (photoBtn.tagName === 'INPUT') {
+//                   const dataTransfer = new DataTransfer();
+//                   dataTransfer.items.add(file);
+//                   photoBtn.files = dataTransfer.files;
+//                   photoBtn.dispatchEvent(new Event('change', { bubbles: true }));
+//                 } else {
+//                   photoBtn.click();
+//                   await sleep(1000);
+                  
+//                   const fileInput = document.querySelector('input[type="file"][accept*="image"]');
+//                   if (fileInput) {
+//                     const dataTransfer = new DataTransfer();
+//                     dataTransfer.items.add(file);
+//                     fileInput.files = dataTransfer.files;
+//                     fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+//                   }
+//                 }
+
+//                 await sleep(3000);
+                
+//                 // Add caption
+//                 const captionInput = document.querySelector('[data-testid="media-caption-input"]');
+//                 if (captionInput) {
+//                   captionInput.focus();
+//                   captionInput.textContent = caption;
+//                   captionInput.dispatchEvent(new Event('input', { bubbles: true }));
+//                   await sleep(1000);
+//                 }
+
+//                 // Send
+//                 const sendBtn = document.querySelector('[data-testid="send"]') ||
+//                                document.querySelector('span[data-icon="send"]');
+//                 if (sendBtn) {
+//                   sendBtn.click();
+//                   await sleep(2000);
+//                   return true;
+//                 }
+//               }
+//             }
+
+//             return false;
+//           } catch (error) {
+//             console.error("Error sending image:", error);
+//             return false;
+//           }
+//         };
+
+//         const sendTextMessage = async (message) => {
+//           const messageBox = await waitForChatToOpen();
+//           if (!messageBox) return false;
+
+//           messageBox.focus();
+//           await sleep(500);
+          
+//           // Clear and set message
+//           messageBox.textContent = '';
+//           await sleep(200);
+          
+//           // Try multiple methods to set text
+//           messageBox.textContent = message;
+//           messageBox.dispatchEvent(new Event('input', { bubbles: true }));
+          
+//           if (messageBox.textContent !== message) {
+//             document.execCommand("insertText", false, message);
+//           }
+          
+//           if (messageBox.textContent !== message) {
+//             messageBox.innerHTML = message.replace(/\n/g, '<br>');
+//             messageBox.dispatchEvent(new Event('input', { bubbles: true }));
+//           }
+
+//           await sleep(1000);
+
+//           // Send message
+//           const sendSelectors = [
+//             '[data-testid="send"]',
+//             'span[data-icon="send"]',
+//             'button[aria-label*="Send"]'
+//           ];
+
+//           let sendBtn = null;
+//           for (const selector of sendSelectors) {
+//             sendBtn = document.querySelector(selector);
+//             if (sendBtn && !sendBtn.disabled) break;
+//           }
+
+//           if (sendBtn) {
+//             sendBtn.click();
+//             await sleep(1500);
+//             return true;
+//           }
+
+//           // Fallback: try Enter key
+//           messageBox.dispatchEvent(new KeyboardEvent('keydown', {
+//             key: 'Enter',
+//             code: 'Enter',
+//             bubbles: true
+//           }));
+//           await sleep(1500);
+//           return true;
+//         };
+
+//         const sendToList = async (list, label) => {
+//           for (const name of list) {
+//             console.log(`Processing ${label}: ${name}`);
+//             const found = await waitForGroupAndClick(name);
+//             if (!found) {
+//               alert(`⚠️ ${label} "${name}" not found.`);
+//               continue;
+//             }
+
+//             // Wait for chat to fully load
+//             await sleep(2000);
+
+//             for (const product of products) {
+//               const message = `🛒 *${product.title}*\n💰 Price: $${product.price}\n🔗 ${product.amazon_product_url}\n\n${product.description || ""}\nAffiliated Url: ${product.product_affiliate_url}`;
+              
+//               let success = false;
+              
+//               // Try to send with image first
+//               if (product.image) {
+//                 console.log(`Sending product with image: ${product.title}`);
+//                 success = await sendImageWithCaption(product.image, message);
+                
+//                 if (!success) {
+//                   console.log('Image sending failed, falling back to text only');
+//                   success = await sendTextMessage(message);
+//                 }
+//               } else {
+//                 // Send text only
+//                 success = await sendTextMessage(message);
+//               }
+
+//               if (!success) {
+//                 console.warn(`Failed to send product: ${product.title} to ${name}`);
+//               }
+
+//               await sleep(3000); // Wait between products
+//             }
+
+//             await sleep(2000); // Wait between groups
+//           }
+//         };
+
+//         // NEW FUNCTION: Upload all products to status
+//         const uploadProductsToStatus = async () => {
+//           console.log('Starting status uploads for all products...');
+          
+//           for (let i = 0; i < products.length; i++) {
+//             const product = products[i];
+//             console.log(`Uploading product ${i + 1}/${products.length} to status: ${product.title}`);
+            
+//             if (product.image) {
+//               const statusMessage = `🛒 *${product.title}*\n💰 Price: $${product.price}\n🔗 ${product.amazon_product_url}\n\n${product.description || ""}\nAffiliated Url: ${product.product_affiliate_url}`;
+              
+//               const success = await uploadToStatus(product.image, statusMessage);
+              
+//               if (success) {
+//                 console.log(`✅ Successfully uploaded ${product.title} to status`);
+//               } else {
+//                 console.warn(`❌ Failed to upload ${product.title} to status`);
+//               }
+              
+//               // Wait between status uploads to avoid rate limiting
+//               await sleep(5000);
+//             } else {
+//               console.log(`⚠️ Skipping ${product.title} - no image available for status`);
+//             }
+//           }
+//         };
+
+//         try {
+//           console.log('Starting the automation process...');
+          
+//           // First, upload all products to status
+//           await uploadProductsToStatus();
+          
+//           // Then send to groups and communities
+//           console.log('Starting to send to groups...');
+//           await sendToList(groupList, "Group");
+          
+//           console.log('Starting to send to communities...');
+//           await sendToList(communityList, "Community");
+          
+//           alert("✅ All products sent to status, groups, and communities!");
+//         } catch (error) {
+//           console.error("Error in sending process:", error);
+//           alert("❌ Error occurred while sending messages. Check console for details.");
+//         }
+//       },
+//     });
+//   });
+// };
 
 // Main function to send messages and upload statuses
 // const handleSend = async () => {
@@ -1802,35 +1777,6 @@ const handleSend = async () => {
 
 //   uploadStatus();
 // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   return (
     <div style={{width: 600 ,backgroundColor:"#FDFBD4",padding:"20px",borderRadius:30}}>
